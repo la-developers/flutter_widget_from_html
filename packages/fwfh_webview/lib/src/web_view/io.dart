@@ -105,6 +105,7 @@ class WebViewState extends State<WebView> {
             ? lib.AutoMediaPlaybackPolicy.always_allow
             : lib.AutoMediaPlaybackPolicy
                 .require_user_action_for_all_media_types,
+        allowsInlineMediaPlayback: true,
         javascriptMode: widget.js
             ? lib.JavascriptMode.unrestricted
             : lib.JavascriptMode.disabled,
