@@ -20,7 +20,9 @@ dependencies:
   fwfh_url_launcher: ^0.6.1+3
   # fwfh_webview: ^0.6.2+1
   fwfh_webview:
-    path: ../fwfh_webview
+    git:
+      url: https://github.com/la-developers/flutter_widget_from_html
+      path: packages/fwfh_webview
   html: ^0.15.0
 
 dependency_overrides:
@@ -40,6 +42,8 @@ dependency_overrides:
     path: ../fwfh_text_style
   fwfh_url_launcher:
     path: ../fwfh_url_launcher
+  fwfh_webview:
+    path: ../fwfh_webview
 
 dev_dependencies:
   file:
