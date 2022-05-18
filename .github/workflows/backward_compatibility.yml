@@ -27,8 +27,10 @@ jobs:
     defaults:
       run:
         working-directory: packages/${{ matrix.package }}
+    env:
+      GOLDEN_SKIP: "yes"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - name: Update pubspec.yaml
         run: |
           set -e
@@ -70,11 +72,16 @@ jobs:
           cat pubspec.yaml
 
       - name: Setup Flutter
-        uses: subosito/flutter-action@v1
+        uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
 
       - run: flutter test
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: failures
+          path: packages/${{ matrix.package }}/test/failures/
 
   fwfh_text_style:
     strategy:
@@ -92,8 +99,10 @@ jobs:
     defaults:
       run:
         working-directory: packages/fwfh_text_style
+    env:
+      GOLDEN_SKIP: "yes"
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           fetch-depth: 0
           ref: ${{ github.event.pull_request.head.sha }}
@@ -102,10 +111,15 @@ jobs:
           git config user.name name
           git config user.email email@domain.com
           git fetch
-      - run: git merge -m test origin/release/${{ matrix.channel }}
+      - run: git merge -X ours -m test origin/release/${{ matrix.channel }}
       - name: Setup Flutter
-        uses: subosito/flutter-action@v1
+        uses: subosito/flutter-action@v2
         with:
           channel: ${{ matrix.channel }}
       - run: flutter --version
       - run: flutter test
+      - uses: actions/upload-artifact@v3
+        if: failure()
+        with:
+          name: failures
+          path: packages/fwfh_text_style/test/failures/

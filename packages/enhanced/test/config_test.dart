@@ -9,7 +9,7 @@ import 'package:flutter_widget_from_html/flutter_widget_from_html.dart';
 import 'package:flutter_widget_from_html_core/src/internal/tsh_widget.dart';
 import 'package:html/dom.dart' as dom;
 
-import '../../fwfh_url_launcher/test/_.dart' as fwfh_url_launcher;
+import '../../fwfh_url_launcher/test/mock_url_launcher_platform.dart';
 import '_.dart' as helper;
 
 Future<String> explain(WidgetTester t, HtmlWidget hw) =>
@@ -358,6 +358,7 @@ void main() {
   group('onErrorBuilder', () {
     Future<String?> explain(
       WidgetTester tester, {
+      required bool buildAsync,
       OnErrorBuilder? onErrorBuilder,
     }) async {
       await runZonedGuarded(
@@ -367,11 +368,12 @@ void main() {
             null,
             hw: HtmlWidget(
               'Foo <span class="throw">bar</span>.',
-              buildAsync: true,
+              buildAsync: buildAsync,
               factoryBuilder: () => _OnErrorBuilderFactory(),
               key: helper.hwKey,
               onErrorBuilder: onErrorBuilder,
             ),
+            useExplainer: false,
           );
 
           await tester
@@ -384,17 +386,32 @@ void main() {
       return helper.explainWithoutPumping(useExplainer: false);
     }
 
-    testWidgets('renders default', (tester) async {
-      final explained = await explain(tester);
+    testWidgets('[sync] renders default', (tester) async {
+      final explained = await explain(tester, buildAsync: false);
       expect(explained, contains('Text("❌")'));
     });
 
-    testWidgets('renders custom', (tester) async {
+    testWidgets('[sync] renders custom', (tester) async {
       final explained = await explain(
         tester,
-        onErrorBuilder: (_, __, ___) => const Text('Custom'),
+        buildAsync: false,
+        onErrorBuilder: (_, __, ___) => const Text('sync error'),
       );
-      expect(explained, contains('RichText(text: "Custom")'));
+      expect(explained, contains('RichText(text: "sync error")'));
+    });
+
+    testWidgets('[async] renders default', (tester) async {
+      final explained = await explain(tester, buildAsync: true);
+      expect(explained, contains('Text("❌")'));
+    });
+
+    testWidgets('[async] renders custom', (tester) async {
+      final explained = await explain(
+        tester,
+        buildAsync: true,
+        onErrorBuilder: (_, __, ___) => const Text('async error'),
+      );
+      expect(explained, contains('RichText(text: "async error")'));
     });
   });
 
@@ -440,8 +457,7 @@ void main() {
   });
 
   group('onTapUrl', () {
-    setUp(fwfh_url_launcher.mockSetup);
-    tearDown(fwfh_url_launcher.mockTearDown);
+    setUp(mockUrlLauncherPlatform);
 
     testWidgets('triggers callback (returns false)', (tester) async {
       const href = 'returns-false';
@@ -461,7 +477,7 @@ void main() {
       expect(await helper.tapText(tester, 'Tap me'), equals(1));
 
       expect(urls, equals(const [href]));
-      expect(fwfh_url_launcher.mockGetLaunchUrls(), equals(const [href]));
+      expect(mockLaunchedUrls, equals(const [href]));
     });
 
     testWidgets('triggers callback (returns true)', (tester) async {
@@ -482,7 +498,7 @@ void main() {
       expect(await helper.tapText(tester, 'Tap me'), equals(1));
 
       expect(urls, equals(const [href]));
-      expect(fwfh_url_launcher.mockGetLaunchUrls(), equals(const []));
+      expect(mockLaunchedUrls, equals(const []));
     });
 
     testWidgets('triggers callback (async false)', (tester) async {
@@ -503,7 +519,7 @@ void main() {
       expect(await helper.tapText(tester, 'Tap me'), equals(1));
 
       expect(urls, equals(const [href]));
-      expect(fwfh_url_launcher.mockGetLaunchUrls(), equals(const [href]));
+      expect(mockLaunchedUrls, equals(const [href]));
     });
 
     testWidgets('triggers callback (async true)', (tester) async {
@@ -524,7 +540,7 @@ void main() {
       expect(await helper.tapText(tester, 'Tap me'), equals(1));
 
       expect(urls, equals(const [href]));
-      expect(fwfh_url_launcher.mockGetLaunchUrls(), equals(const []));
+      expect(mockLaunchedUrls, equals(const []));
     });
 
     testWidgets('default handler', (WidgetTester tester) async {
@@ -536,7 +552,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(await helper.tapText(tester, 'Tap me'), equals(1));
 
-      expect(fwfh_url_launcher.mockGetLaunchUrls(), equals(const [href]));
+      expect(mockLaunchedUrls, equals(const [href]));
     });
   });
 

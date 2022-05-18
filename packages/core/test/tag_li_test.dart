@@ -867,7 +867,13 @@ Future<void> main() async {
       expect(urls, equals(const [href]));
     });
 
-    final goldenSkip = Platform.isLinux ? null : 'Linux only';
+    final goldenSkipEnvVar = Platform.environment['GOLDEN_SKIP'];
+    final goldenSkip = goldenSkipEnvVar == null
+        ? Platform.isLinux
+            ? null
+            : 'Linux only'
+        : 'GOLDEN_SKIP=$goldenSkipEnvVar';
+
     GoldenToolkit.runWithConfiguration(
       () {
         group(
@@ -895,9 +901,7 @@ Future<void> main() async {
               'li_within_li': '<li>Foo</li>',
               'list_within_li': '<ul><li>Foo</li></ul>',
               'list_of_items_within_li': '<ol><li>Foo</li><li>Bar</li></ol>',
-              'multiline':
-                  'Lorem ipsum dolor sit amet, consectetur adipiscing elit.<br />\n' *
-                      3,
+              'multiline': 'Lorem ipsum dolor sit amet.<br />\n' * 3,
               'padding': '<div style="padding: 10px">Foo</div>',
               'ruby': '<ruby>明日 <rp>(</rp><rt>Ashita</rt><rp>)</rp></ruby>',
             };
@@ -998,14 +1002,6 @@ class _Golden extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(contents),
-              const Divider(),
-              Builder(
-                builder: (context) => Text(
-                  'UL:\n',
-                  style: Theme.of(context).textTheme.caption,
-                ),
-              ),
               HtmlWidget(
                 '''
 <ul>
@@ -1013,17 +1009,7 @@ class _Golden extends StatelessWidget {
   <li>$contents</li>
   <li>Below</li>
 </ul>
-''',
-              ),
-              const Divider(),
-              Builder(
-                builder: (context) => Text(
-                  'OL:\n',
-                  style: Theme.of(context).textTheme.caption,
-                ),
-              ),
-              HtmlWidget(
-                '''
+<br />
 <ol>
   <li>First</li>
   <li>$contents</li>

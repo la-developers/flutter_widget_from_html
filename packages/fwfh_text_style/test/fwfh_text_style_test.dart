@@ -120,6 +120,7 @@ Future<void> main() async {
       });
 
       test('resets to null', () {
+        // ignore: avoid_redundant_argument_values
         final copied = obj.copyWith(height: null);
         expect(copied.height, isNull);
         expect(copied, isNot(equals(obj)));
@@ -207,7 +208,13 @@ Future<void> main() async {
     expect(merged, isNot(equals(obj)));
   });
 
-  final goldenSkip = Platform.isLinux ? null : 'Linux only';
+  final goldenSkipEnvVar = Platform.environment['GOLDEN_SKIP'];
+  final goldenSkip = goldenSkipEnvVar == null
+      ? Platform.isLinux
+          ? null
+          : 'Linux only'
+      : 'GOLDEN_SKIP=$goldenSkipEnvVar';
+
   GoldenToolkit.runWithConfiguration(
     () {
       group(

@@ -814,7 +814,13 @@ Future<void> main() async {
       expect(urls, equals(const [href]));
     });
 
-    final goldenSkip = Platform.isLinux ? null : 'Linux only';
+    final goldenSkipEnvVar = Platform.environment['GOLDEN_SKIP'];
+    final goldenSkip = goldenSkipEnvVar == null
+        ? Platform.isLinux
+            ? null
+            : 'Linux only'
+        : 'GOLDEN_SKIP=$goldenSkipEnvVar';
+
     GoldenToolkit.runWithConfiguration(
       () {
         group(
@@ -849,7 +855,7 @@ Foo should float on top of table.''',
 </table>''',
               'colspan': '''
 <table border="1">
-  <tr><td colspan="2">$multiline</td></tr>
+  <tr><td colspan="2">Lorem ipsum dolor sit amet.</td></tr>
   <tr><td>Foo</td><td>Bar</td></tr>
 </table>''',
               'height_as_min_height':
@@ -981,14 +987,7 @@ class _Golden extends StatelessWidget {
   Widget build(BuildContext _) => Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(contents),
-              const Divider(),
-              HtmlWidget(contents),
-            ],
-          ),
+          child: HtmlWidget(contents),
         ),
       );
 }

@@ -194,7 +194,13 @@ Future<void> main() async {
     });
   });
 
-  final goldenSkip = Platform.isLinux ? null : 'Linux only';
+  final goldenSkipEnvVar = Platform.environment['GOLDEN_SKIP'];
+  final goldenSkip = goldenSkipEnvVar == null
+      ? Platform.isLinux
+          ? null
+          : 'Linux only'
+      : 'GOLDEN_SKIP=$goldenSkipEnvVar';
+
   GoldenToolkit.runWithConfiguration(
     () {
       group(
@@ -294,23 +300,11 @@ class _Golden extends StatelessWidget {
   Widget build(BuildContext _) => Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                contents.replaceAll(
-                  RegExp('file://.+/fwfh_svg/'),
-                  'file://.../fwfh_svg/',
-                ),
-              ),
-              const Divider(),
-              HtmlWidget(
-                contents,
-                factoryBuilder: allowDrawingOutsideViewBox
-                    ? () => _GoldenAllowFactory()
-                    : () => _GoldenDisallowFactory(),
-              ),
-            ],
+          child: HtmlWidget(
+            contents,
+            factoryBuilder: allowDrawingOutsideViewBox
+                ? () => _GoldenAllowFactory()
+                : () => _GoldenDisallowFactory(),
           ),
         ),
       );
